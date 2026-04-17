@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BETBAT - 대한민국 No.1 스포츠 베팅</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bb-navy: #0b1a30;
+            --bb-blue: #14325c;
+            --bb-red: #e63946;
+            --bb-gold: #ffb703;
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --border-color: #d1d5db;
+            --text-dark: #1f2937;
+            --text-gray: #6b7280;
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* 헤더 / 네비게이션 */
+        .header {
+            width: 100%;
+            background-color: var(--bb-navy);
+            color: white;
+            display: flex;
+            justify-content: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .header-content {
+            width: 100%;
+            max-width: 1000px;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        .logo-area { font-weight: 800; font-size: 26px; letter-spacing: -1px; color: white; cursor: pointer; }
+        .logo-area span { color: var(--bb-gold); }
+        
+        #guestPanel { display: flex; }
+        .btn-login-header {
+            background: var(--bb-red); color: white; border: none;
+            padding: 8px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 15px;
+        }
+        .btn-login-header:hover { background: #d62828; }
+
+        #userPanel { display: none; align-items: center; gap: 15px; }
+        .user-points { font-size: 18px; font-weight: 800; color: var(--bb-gold); }
+        .btn-history { background: #fff; color: var(--bb-navy); border: none; padding: 6px 12px; border-radius: 4px; font-weight: 800; cursor: pointer; font-size: 13px;}
+        .btn-logout { background: transparent; color: white; border: 1px solid rgba(255,255,255,0.5); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+
+        /* 메인 레이아웃 */
+        .app-layout {
+            width: 100%;
+            max-width: 1000px;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .matches-section { flex: 1; }
+        .sidebar-section { width: 320px; position: sticky; top: 80px; }
+        .page-title { font-size: 20px; font-weight: 800; margin-bottom: 15px; border-left: 4px solid var(--bb-red); padding-left: 10px; }
+
+        /* 경기 카드 */
+        .match-card {
+            background: var(--card-bg); border-radius: 8px; padding: 20px;
+            margin-bottom: 15px; border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .match-time { font-size: 13px; color: var(--text-gray); font-weight: 600; margin-bottom: 15px; display: block; }
+        .team-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 18px; font-weight: 700; }
+        .team-row .home { flex: 1; text-align: right; }
+        .team-row .away { flex: 1; text-align: left; }
+        .team-row .vs { padding: 0 15px; font-size: 14px; color: #ccc; }
+        
+        .odds-container { display: flex; gap: 8px; }
+        .odds-btn {
+            flex: 1; background: #fff; border: 1px solid var(--border-color);
+            border-radius: 6px; padding: 12px; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+            transition: 0.2s;
+        }
+        .odds-btn:hover { border-color: var(--bb-navy); background: #f8fafc; }
+        .odds-btn.active { background: var(--bb-red); border-color: var(--bb-red); color: white; }
+        .odds-type { font-size: 14px; font-weight: 500; }
+        .odds-val { font-size: 16px; font-weight: 800; }
+
+        /* 베팅 슬립 (오른쪽 패널) */
+        .bet-slip {
+            background: var(--card-bg); border-radius: 8px;
+            border: 2px solid var(--bb-navy); overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+        .slip-header { background: var(--bb-navy); color: white; padding: 15px; font-weight: 800; text-align: center; }
+        .slip-items { padding: 15px; max-height: 280px; overflow-y: auto; border-bottom: 1px solid var(--border-color); }
+        .slip-item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #f1f5f9; padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 13px;
+        }
+        .slip-item-info { display: flex; flex-direction: column; gap: 4px; }
+        .slip-item-pick { font-weight: 800; color: var(--bb-red); }
+        .btn-remove { background: none; border: none; color: var(--text-gray); font-weight: 800; cursor: pointer; }
+        
+        .slip-summary { padding: 20px; background: #fff; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; font-weight: 600; align-items: center;}
+        .total-odds { font-size: 20px; font-weight: 800; color: var(--bb-red); }
+        .potential-win-box { background: #fffbeb; border: 1px solid #fde68a; padding: 12px; border-radius: 6px; margin-bottom: 15px; }
+        .potential-win-val { font-size: 18px; font-weight: 800; color: #d97706; }
+        
+        .bet-input-wrapper { display: flex; flex-direction: column; gap: 10px; }
+        .bet-input { padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 16px; font-weight: 700; text-align: right; }
+        .btn-submit-bet {
+            width: 100%; padding: 15px; background: var(--bb-navy); color: var(--bb-gold);
+            border: none; border-radius: 6px; font-size: 16px; font-weight: 800; cursor: pointer; transition: 0.2s;
+        }
+        .btn-submit-bet:hover { background: var(--bb-blue); }
+        .btn-submit-bet:disabled { background: #e0e4e8; color: #a0aab2; cursor: not-allowed; }
+
+        /* 공통 모달 */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: #fff; width: 90%; max-width: 480px; border-radius: 12px;
+            padding: 30px; position: relative; max-height: 85vh; overflow-y: auto;
+        }
+        .btn-close { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; color: #888; }
+        
+        /* 로그인 모달 */
+        .auth-card h2 { margin-top: 0; color: var(--bb-navy); font-weight: 800; margin-bottom: 25px; text-align: center;}
+        .auth-input { width: 100%; padding: 15px; margin-bottom: 12px; border: 1px solid var(--border-color); border-radius: 6px; box-sizing: border-box; font-size: 15px; background: #f9fafb; }
+        .btn-auth { width: 100%; padding: 15px; background: var(--bb-navy); color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: 800; cursor: pointer; margin-bottom: 10px; }
+        .btn-auth.sub { background: #fff; color: var(--bb-navy); border: 1px solid var(--bb-navy); }
+
+        /* 내역 모달 */
+        .history-item { border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+        .history-status { font-weight: 800; padding: 4px 8px; border-radius: 4px; font-size: 12px; display: inline-block; margin-bottom: 10px; }
+        .status-win { background: rgba(0,255,133,0.2); color: #009950; }
+        .status-lose { background: rgba(233,0,82,0.2); color: var(--bb-red); }
+        .status-pending { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;}
+        .bet-detail-box { background: #f8fafc; border-radius: 6px; padding: 10px; margin-bottom: 8px; border: 1px solid #e2e8f0; font-size: 13.5px;}
+        .result-text { font-size: 12px; font-weight: 700; margin-top: 5px; padding-top: 5px; border-top: 1px dashed #cbd5e1;}
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="header-content">
+        <div class="logo-area">BET<span>BAT</span></div>
+        <div id="guestPanel">
+            <button class="btn-login-header" onclick="openAuthModal()">로그인 / 회원가입</button>
+        </div>
+        <div id="userPanel">
+            <div style="font-size: 14px;"><strong id="displayNick"></strong>님</div>
+            <div class="user-points"><span id="pointDisplay">0</span> P</div>
+            <button class="btn-history" onclick="openHistoryModal()">베팅 내역</button>
+            <button class="btn-logout" onclick="logout()">로그아웃</button>
+        </div>
+    </div>
+</header>
+
+<div class="app-layout">
+    <div class="matches-section">
+        <div class="page-title">EPL 스페셜 다폴더 (33R)</div>
+        <div id="matchList"></div>
+    </div>
+
+    <div class="sidebar-section">
+        <div class="bet-slip">
+            <div class="slip-header">베팅 슬립</div>
+            <div class="slip-items" id="slipItems">
+                <div style="text-align:center; color:#999; font-size:13px; padding: 20px 0;">배당률을 클릭해 추가하세요.</div>
+            </div>
+            <div class="slip-summary">
+                <div class="summary-row">
+                    <span>선택 폴더</span>
+                    <span id="slipCount" style="color: var(--bb-navy);">0 경기</span>
+                </div>
+                <div class="summary-row">
+                    <span>총 배당률</span>
+                    <span class="total-odds" id="slipOdds">0.00 배</span>
+                </div>
+                
+                <div class="summary-row potential-win-box">
+                    <span>예상 적중 금액</span>
+                    <span class="potential-win-val" id="potentialWinDisplay">0 P</span>
+                </div>
+
+                <div class="bet-input-wrapper">
+                    <input type="number" id="betAmount" class="bet-input" placeholder="최소 5,000P 이상" min="5000" oninput="updatePotentialWin()">
+                    <button class="btn-submit-bet" id="btnSubmitBet" onclick="placeMultiBet()" disabled>결제하기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="authModal">
+    <div class="modal-content auth-card">
+        <button class="btn-close" onclick="closeAuthModal()">&times;</button>
+        <h2>BETBAT 접속</h2>
+        <input type="text" id="inputId" class="auth-input" placeholder="아이디">
+        <input type="password" id="inputPw" class="auth-input" placeholder="비밀번호">
+        <input type="text" id="inputNick" class="auth-input" placeholder="닉네임 (신규 가입 시에만 입력)">
+        <button class="btn-auth" onclick="login()">로그인</button>
+        <button class="btn-auth sub" onclick="register()">신규 회원가입 (5만P 즉시 지급)</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="historyModal">
+    <div class="modal-content">
+        <button class="btn-close" onclick="closeHistoryModal()">&times;</button>
+        <h2 style="margin-top:0; color:var(--bb-navy); border-bottom: 2px solid var(--bb-navy); padding-bottom:10px;">상세 베팅 내역</h2>
+        <div id="historyList"></div>
+    </div>
+</div>
+
+<script>
+    // 1. 배당률 오즈메이커 및 데이터
+    const teamStats = {
+        "맨체스터 시티": 95, "아스널": 93, "리버풀": 91, "첼시": 86, "토트넘 홋스퍼": 85, 
+        "맨체스터 유나이티드": 84, "뉴캐슬": 83, "애스턴 빌라": 83, "브라이턴": 80, "웨스트햄": 79, 
+        "풀럼": 77, "브렌트퍼드": 76, "울버햄프턴": 75, "본머스": 75, "크리스털 팰리스": 74, 
+        "에버턴": 73, "노팅엄 포레스트": 72, "리즈 유나이티드": 70, "번리": 68, "선덜랜드": 65
+    };
+
+    function calculateOdds(homeTeam, awayTeam) {
+        let diff = (teamStats[homeTeam] || 75) + 4 - (teamStats[awayTeam] || 75); 
+        let probHome = Math.max(0.12, Math.min(0.85, 0.38 + (diff * 0.015)));
+        let probAway = Math.max(0.10, Math.min(0.80, 0.34 - (diff * 0.015)));
+        let probDraw = 1.0 - probHome - probAway;
+        return { home: (0.92 / probHome).toFixed(2), draw: (0.92 / probDraw).toFixed(2), away: (0.92 / probAway).toFixed(2) };
+    }
+
+    const rawMatches = [
+        { id: 1, date: "4. 18 (토) 20:30", home: "브렌트퍼드", away: "풀럼" },
+        { id: 2, date: "4. 18 (토) 23:00", home: "리즈 유나이티드", away: "울버햄프턴" },
+        { id: 3, date: "4. 18 (토) 23:00", home: "뉴캐슬", away: "본머스" },
+        { id: 4, date: "4. 19 (일) 01:30", home: "토트넘 홋스퍼", away: "브라이턴" },
+        { id: 5, date: "4. 19 (일) 04:00", home: "첼시", away: "맨체스터 유나이티드" },
+        { id: 6, date: "4. 19 (일) 22:00", home: "애스턴 빌라", away: "선덜랜드" },
+        { id: 7, date: "4. 19 (일) 22:00", home: "에버턴", away: "리버풀" },
+        { id: 8, date: "4. 19 (일) 22:00", home: "노팅엄 포레스트", away: "번리" },
+        { id: 9, date: "4. 20 (월) 00:30", home: "맨체스터 시티", away: "아스널" },
+        { id: 10, date: "4. 21 (화) 04:00", home: "크리스털 팰리스", away: "웨스트햄" }
+    ];
+
+    const myMatches = rawMatches.map(m => ({ ...m, odds: calculateOdds(m.home, m.away) }));
+
+    let selectedBets = [];
+    let currentUser = null;
+
+    window.onload = function() { renderMatches(); };
+
+    // 2. 인증 모달 제어
+    function openAuthModal() { document.getElementById('authModal').style.display = 'flex'; }
+    function closeAuthModal() { document.getElementById('authModal').style.display = 'none'; }
+
+    function getUsers() { return JSON.parse(localStorage.getItem('betbatUsers')) || {}; }
+    function saveUsers(users) { localStorage.setItem('betbatUsers', JSON.stringify(users)); }
+
+    function register() {
+        const id = document.getElementById('inputId').value.trim();
+        const pw = document.getElementById('inputPw').value.trim();
+        const nick = document.getElementById('inputNick').value.trim();
+        if (!id || !pw || !nick) return alert("항목을 모두 입력해주세요.");
+        const users = getUsers();
+        if (users[id]) return alert("이미 사용 중인 아이디입니다.");
+        
+        users[id] = { pw, nick, points: 50000, lastLogin: '', history: [] };
+        saveUsers(users);
+        alert("회원가입 완료! 50,000P가 지급되었습니다. 로그인해주세요.");
+    }
+
+    function login() {
+        const id = document.getElementById('inputId').value.trim();
+        const pw = document.getElementById('inputPw').value.trim();
+        const users = getUsers();
+        const user = users[id];
+
+        if (!user || user.pw !== pw) return alert("정보가 일치하지 않습니다.");
+
+        currentUser = id;
+        if (!user.history) user.history = [];
+        
+        const today = new Date().toLocaleDateString();
+        if (user.lastLogin !== today) {
+            user.points += 10000;
+            user.lastLogin = today;
+            updateUser(user);
+            alert("일일 출석 보상 10,000P 지급!");
+        }
+        
+        document.getElementById('displayNick').innerText = user.nick;
+        renderPoints(user.points);
+        
+        document.getElementById('guestPanel').style.display = 'none';
+        document.getElementById('userPanel').style.display = 'flex';
+        closeAuthModal();
+    }
+
+    function updateUser(userData) {
+        const users = getUsers();
+        users[currentUser] = userData;
+        saveUsers(users);
+    }
+    function renderPoints(p) { document.getElementById('pointDisplay').innerText = p.toLocaleString(); }
+    
+    function logout() { 
+        currentUser = null;
+        selectedBets = [];
+        updateMatchButtonsUI();
+        updateBetSlipUI();
+        document.getElementById('guestPanel').style.display = 'flex';
+        document.getElementById('userPanel').style.display = 'none';
+        alert("로그아웃 되었습니다.");
+    }
+
+    // 3. 경기 렌더링 및 배당 클릭
+    function renderMatches() {
+        const list = document.getElementById('matchList');
+        list.innerHTML = '';
+        myMatches.forEach(m => {
+            const card = document.createElement('div');
+            card.className = 'match-card';
+            card.innerHTML = `
+                <span class="match-time">EPL | ${m.date}</span>
+                <div class="team-row">
+                    <div class="home">${m.home}</div>
+                    <div class="vs">VS</div>
+                    <div class="away">${m.away}</div>
+                </div>
+                <div class="odds-container" id="match-btns-${m.id}">
+                    <button class="odds-btn" onclick="toggleBet(${m.id}, '홈 승', ${m.odds.home}, '${m.home}', '${m.away}')">
+                        <span class="odds-type">승</span><span class="odds-val">${m.odds.home}</span>
+                    </button>
+                    <button class="odds-btn" onclick="toggleBet(${m.id}, '무승부', ${m.odds.draw}, '${m.home}', '${m.away}')">
+                        <span class="odds-type">무</span><span class="odds-val">${m.odds.draw}</span>
+                    </button>
+                    <button class="odds-btn" onclick="toggleBet(${m.id}, '원정 승', ${m.odds.away}, '${m.home}', '${m.away}')">
+                        <span class="odds-type">패</span><span class="odds-val">${m.odds.away}</span>
+                    </button>
+                </div>
+            `;
+            list.appendChild(card);
+        });
+    }
+
+    function toggleBet(matchId, type, odds, home, away) {
+        if (!currentUser) {
+            alert("베팅(조합)을 하시려면 로그인이 필요합니다.");
+            openAuthModal();
+            return;
+        }
+
+        const existingIndex = selectedBets.findIndex(b => b.matchId === matchId);
+        if (existingIndex > -1) {
+            if (selectedBets[existingIndex].type === type) selectedBets.splice(existingIndex, 1);
+            else selectedBets[existingIndex] = { matchId, home, away, type, odds };
+        } else {
+            selectedBets.push({ matchId, home, away, type, odds });
+        }
+
+        updateMatchButtonsUI();
+        updateBetSlipUI();
+    }
+
+    function updateMatchButtonsUI() {
+        document.querySelectorAll('.odds-btn').forEach(btn => btn.classList.remove('active'));
+        selectedBets.forEach(bet => {
+            const container = document.getElementById(`match-btns-${bet.matchId}`);
+            if(!container) return;
+            const buttons = container.querySelectorAll('.odds-btn');
+            const typeStr = bet.type === '홈 승' ? '승' : (bet.type === '무승부' ? '무' : '패');
+            buttons.forEach(btn => {
+                if (btn.querySelector('.odds-type').innerText === typeStr) btn.classList.add('active');
+            });
+        });
+    }
+
+    function updateBetSlipUI() {
+        const slipList = document.getElementById('slipItems');
+        const submitBtn = document.getElementById('btnSubmitBet');
+        
+        if (selectedBets.length === 0) {
+            slipList.innerHTML = '<div style="text-align:center; color:#999; font-size:13px; padding: 20px 0;">클릭하여 배당률을 추가하세요.</div>';
+            document.getElementById('slipCount').innerText = '0 경기';
+            document.getElementById('slipOdds').innerText = '0.00 배';
+            document.getElementById('potentialWinDisplay').innerText = '0 P';
+            submitBtn.disabled = true;
+            return;
+        }
+
+        slipList.innerHTML = '';
+        let totalOdds = 1.0;
+
+        selectedBets.forEach(bet => {
+            totalOdds *= bet.odds;
+            slipList.innerHTML += `
+                <div class="slip-item">
+                    <div class="slip-item-info">
+                        <span>${bet.home} vs ${bet.away}</span>
+                        <span class="slip-item-pick">[${bet.type}] @ ${bet.odds}</span>
+                    </div>
+                    <button class="btn-remove" onclick="toggleBet(${bet.matchId}, '${bet.type}', ${bet.odds})">✕</button>
+                </div>
+            `;
+        });
+
+        document.getElementById('slipCount').innerText = `${selectedBets.length} 폴더`;
+        document.getElementById('slipOdds').innerText = `${totalOdds.toFixed(2)} 배`;
+        submitBtn.disabled = false;
+        
+        updatePotentialWin(); // 슬립이 갱신될 때 예상 금액도 다시 계산
+    }
+
+    // 금액 입력 시 실시간 예상 적중 금액 계산
+    function updatePotentialWin() {
+        const amtStr = document.getElementById('betAmount').value;
+        const amt = parseInt(amtStr) || 0;
+        const totalOddsStr = document.getElementById('slipOdds').innerText;
+        const odds = parseFloat(totalOddsStr.replace(' 배', '')) || 0;
+        
+        const win = Math.floor(amt * odds);
+        document.getElementById('potentialWinDisplay').innerText = win.toLocaleString() + ' P';
+    }
+
+    // 4. 결제 및 시뮬레이션 (스코어 생성 추가)
+    // 실제 축구 스코어 가상 생성 함수
+    function generateScore(resultType) {
+        let h = 0, a = 0;
+        if (resultType === '홈 승') {
+            h = Math.floor(Math.random() * 3) + 1; // 1~3골
+            a = Math.floor(Math.random() * h);     // 홈팀보다 무조건 적게
+        } else if (resultType === '원정 승') {
+            a = Math.floor(Math.random() * 3) + 1; 
+            h = Math.floor(Math.random() * a);
+        } else { // 무승부
+            h = a = Math.floor(Math.random() * 3); // 0~2골
+        }
+        return `${h} : ${a}`;
+    }
+
+    function placeMultiBet() {
+        if (!currentUser) return;
+        const amount = parseInt(document.getElementById('betAmount').value);
+        const user = getUsers()[currentUser];
+
+        if (!amount || amount < 5000) return alert("최소 5,000P 이상 베팅해야 합니다.");
+        if (amount > user.points) return alert("보유 포인트가 부족합니다.");
+
+        const totalOdds = selectedBets.reduce((acc, bet) => acc * bet.odds, 1);
+        const potentialWin = Math.floor(amount * totalOdds);
+
+        user.points -= amount;
+        
+        const historyRecord = {
+            id: Date.now(),
+            date: new Date().toLocaleString(),
+            bets: [...selectedBets],
+            amount: amount,
+            totalOdds: totalOdds.toFixed(2),
+            potentialWin: potentialWin,
+            status: 'pending' // pending 상태로 기록
+        };
+        user.history.unshift(historyRecord);
+        updateUser(user);
+        renderPoints(user.points);
+
+        alert(`✅ ${amount.toLocaleString()}P 베팅 완료!\n(${selectedBets.length}폴더 조합)\n경기 결과를 시뮬레이션 합니다.`);
+
+        selectedBets = [];
+        updateMatchButtonsUI();
+        updateBetSlipUI();
+        document.getElementById('betAmount').value = '';
+
+        setTimeout(() => simulateMultiBet(historyRecord.id), 3000);
+    }
+
+    function simulateMultiBet(recordId) {
+        const users = getUsers();
+        const user = users[currentUser];
+        const record = user.history.find(h => h.id === recordId);
+
+        let isWin = true;
+
+        // 선택한 경기별로 결과 및 스코어 계산 후 기록에 저장
+        record.bets.forEach(bet => {
+            const matchOdds = myMatches.find(m => m.id === bet.matchId).odds;
+            const probHome = 1 / matchOdds.home;
+            const probDraw = 1 / matchOdds.draw;
+            
+            const rand = Math.random();
+            let res = '';
+            if (rand < probHome) res = '홈 승';
+            else if (rand < probHome + probDraw) res = '무승부';
+            else res = '원정 승';
+
+            // 결과에 맞는 가짜 스코어 생성
+            const score = generateScore(res);
+            
+            // 객체에 실제 결과와 스코어 저장 (나중에 모달에서 보여주기 위함)
+            bet.actualResult = res;
+            bet.actualScore = score;
+
+            if (bet.type !== res) {
+                isWin = false;
+            }
+        });
+
+        if (isWin) {
+            record.status = 'win';
+            user.points += record.potentialWin;
+            alert(`🎉 [대박 적중!] 올킬 성공 🎉\n당첨금 ${record.potentialWin.toLocaleString()}P가 지급되었습니다!\n자세한 스코어는 '베팅 내역'에서 확인하세요.`);
+        } else {
+            record.status = 'lose';
+            alert(`❌ [미적중]\n아쉽습니다. 한 폴더 이상이 빗나갔습니다.\n자세한 스코어는 '베팅 내역'에서 확인하세요.`);
+        }
+
+        updateUser(user);
+        renderPoints(user.points);
+    }
+
+    // 5. 내역 모달창 (선택 vs 실제 결과/스코어 표시)
+    function openHistoryModal() {
+        const user = getUsers()[currentUser];
+        const listDiv = document.getElementById('historyList');
+        listDiv.innerHTML = '';
+
+        if (user.history.length === 0) {
+            listDiv.innerHTML = '<p style="text-align:center; color:#999; margin:40px 0;">참여한 베팅 내역이 없습니다.</p>';
+        } else {
+            user.history.forEach(h => {
+                let statusHtml = h.status === 'win' ? `<span class="history-status status-win">적중 (+${h.potentialWin.toLocaleString()}P)</span>` 
+                                : (h.status === 'lose' ? `<span class="history-status status-lose">미적중 (-${h.amount.toLocaleString()}P)</span>` 
+                                : `<span class="history-status status-pending">시뮬레이션 진행중...</span>`);
+
+                // 각 게임별 상세 내역 (내 선택 vs 실제 결과)
+                let picksHtml = h.bets.map(b => {
+                    let resultTag = '';
+                    if (h.status !== 'pending') {
+                        // 결과가 나왔을 경우 스코어 표시
+                        const isHit = b.type === b.actualResult;
+                        const textColor = isHit ? '#009950' : 'var(--bb-red)';
+                        const oxMark = isHit ? '⭕ 적중' : '❌ 미적중';
+                        resultTag = `
+                            <div class="result-text" style="color: ${textColor};">
+                                ↳ 실제 결과: <b>${b.actualScore}</b> (${b.actualResult}) [${oxMark}]
+                            </div>
+                        `;
+                    }
+                    return `
+                        <div class="bet-detail-box">
+                            <div style="margin-bottom:4px; font-weight:600;">${b.home} vs ${b.away}</div>
+                            <div>나의 선택: <b style="color:var(--bb-navy);">${b.type}</b> (@${b.odds})</div>
+                            ${resultTag}
+                        </div>
+                    `;
+                }).join('');
+
+                listDiv.innerHTML += `
+                    <div class="history-item">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            ${statusHtml}
+                            <div style="font-size:12px; color:#888;">${h.date}</div>
+                        </div>
+                        <div style="margin-bottom:12px;">${picksHtml}</div>
+                        <div style="font-size:14px; background:#f0f2f5; padding:10px; border-radius:4px; text-align:right;">
+                            결제 금액: <b>${h.amount.toLocaleString()} P</b><br>
+                            총 배당률: <b>${h.totalOdds} 배</b>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        document.getElementById('historyModal').style.display = 'flex';
+    }
+
+    function closeHistoryModal() { document.getElementById('historyModal').style.display = 'none'; }
+</script>
+
+</body>
+</html>
